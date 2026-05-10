@@ -178,10 +178,13 @@ def main() -> int:
     ap.add_argument("--max-budget-usd", type=float, default=1.0)
     ap.add_argument(
         "--mode",
-        choices=["critic", "usc", "confidence", "hybrid"],
+        choices=["critic", "usc", "confidence", "hybrid", "synthesize"],
         default="critic",
-        help="critic = argmax(critic_score) [default], usc = Universal Self-Consistency, "
-             "confidence = critic × self-reported confidence, hybrid = critic gates → USC tiebreaks",
+        help="critic = argmax(critic_score) [default]; "
+             "usc = Universal Self-Consistency (pick most consistent); "
+             "confidence = critic × self-reported confidence; "
+             "hybrid = critic gates → USC tiebreaks; "
+             "synthesize = AggAgent (arXiv 2604.11753) merges N rollouts into ONE new answer",
     )
     args = ap.parse_args()
 
@@ -208,6 +211,8 @@ def main() -> int:
         r["score"] = score_rollout(r, args.agent, weight_by_confidence=weight_conf)
     rollouts.sort(key=lambda r: r["score"], reverse=True)
 
+    synthesis_result = None  # only populated when mode == synthesize
+
     if args.mode == "usc":
         usc_idx = usc_pick(args.prompt, rollouts, max_budget=0.05)
         if usc_idx >= 0:
@@ -226,6 +231,46 @@ def main() -> int:
                 winner = rollouts[0]
         else:
             winner = rollouts[0]
+    elif args.mode == "synthesize":
+        # AggAgent (arXiv 2604.11753): synthesize a NEW answer combining all rollouts
+        try:
+            sys.path.insert(0, str(Path(__file__).parent))
+            import aggagent as agg_mod
+        except ImportError:
+            print("[best-of-n] aggagent module not found; falling back to argmax", file=sys.stderr)
+            winner = rollouts[0]
+        else:
+            # Extract candidate text from each rollout's transcript
+            candidates: list[str] = []
+            for r in rollouts:
+                text = ""
+                jsonl = r.get("jsonl")
+                if jsonl:
+                    try:
+                        for line in open(jsonl):
+                            try:
+                                evt = json.loads(line)
+                            except json.JSONDecodeError:
+                                continue
+                            if evt.get("type") == "assistant":
+                                for block in (evt.get("message") or {}).get("content", []) or []:
+                                    if isinstance(block, dict) and block.get("type") == "text":
+                                        text += block.get("text", "") + "\n"
+                    except OSError:
+                        pass
+                candidates.append(text[:4000] or f"<empty rollout {r.get('idx')}>")
+
+            synthesis_result = agg_mod.synthesize(
+                args.prompt, candidates, max_budget=min(0.20, args.max_budget_usd)
+            )
+            # In synthesize mode, "winner" is conceptual — there is no single winning rollout.
+            # We track the highest-scored rollout for fallback / comparison.
+            winner = rollouts[0]
+            winner = {
+                **winner,
+                "synthesized_chosen": True,
+                "synthesized_text": synthesis_result.get("synthesized", ""),
+            }
     else:
         winner = rollouts[0]
 
@@ -240,19 +285,32 @@ def main() -> int:
              "exit": r.get("exit")}
             for r in rollouts
         ],
-        "chosen_idx": winner["idx"],
+        "chosen_idx": winner["idx"] if not synthesis_result else -1,  # -1 = synthesized
         "chosen_score": winner["score"],
     }
+    if synthesis_result:
+        decision["synthesis"] = {
+            "synthesized": synthesis_result.get("synthesized", ""),
+            "agreement": synthesis_result.get("agreement", []),
+            "divergences": synthesis_result.get("divergences", []),
+            "format_warning": synthesis_result.get("format_warning"),
+            "error": synthesis_result.get("error"),
+            "n_candidates": synthesis_result.get("n_candidates"),
+        }
     (out_dir / "decision.json").write_text(json.dumps(decision, indent=2))
 
-    # Symlink winner
-    winner_link = out_dir / "winner.jsonl"
-    try:
-        if winner_link.exists() or winner_link.is_symlink():
-            winner_link.unlink()
-        winner_link.symlink_to(Path(winner["jsonl"]).name)
-    except OSError:
-        pass
+    # Symlink winner (skip in synthesize mode — there's no single winning rollout file)
+    if args.mode != "synthesize":
+        winner_link = out_dir / "winner.jsonl"
+        try:
+            if winner_link.exists() or winner_link.is_symlink():
+                winner_link.unlink()
+            winner_link.symlink_to(Path(winner["jsonl"]).name)
+        except OSError:
+            pass
+    elif synthesis_result and synthesis_result.get("synthesized"):
+        # Write the synthesized output as its own artifact
+        (out_dir / "synthesized.txt").write_text(synthesis_result["synthesized"])
 
     # Emit a reward event for this best-of-n decision
     reward_rec = {
