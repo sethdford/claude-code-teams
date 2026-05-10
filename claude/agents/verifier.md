@@ -67,6 +67,29 @@ Your final output has THREE sections:
 
 Do not include opinions on code style, naming, architecture. That's the critic's job.
 
+## Sandboxed execution (when verifying untrusted code)
+
+For any verification of code that:
+- Came from a third-party PR / branch / contributor
+- Touches production systems, secrets, or user data
+- Could plausibly be malicious or buggy in a destructive way
+
+…run the test command via the sandbox wrapper instead of raw Bash:
+
+```bash
+python3 ~/.claude/sandbox/sandbox_run.py --cwd <workdir> --json -- <test command>
+```
+
+This wraps your bash in `sandbox-exec` (macOS) / `bwrap` (Linux). The sandbox:
+- Permits writes only under the workdir + /tmp
+- Denies reads of `~/.ssh`, `~/.aws`, `~/.config/gcloud`, `~/.claude/mcp.json`
+- Denies network by default (use `--allow-network` only if the test legitimately needs it)
+- Scrubs sensitive env vars (ANTHROPIC_API_KEY, AWS_*, OPENAI_*, secrets, tokens)
+
+Output is a JSON record: `{exit_code, stdout, stderr, duration_ms, sandboxed, ...}`. Parse `exit_code` and `stdout` for your evidence — don't trust the agent's claims, trust the captured output.
+
+For routine first-party verification (your own tests on your own code), raw Bash is fine. The sandbox adds ~10ms overhead and one indirection.
+
 ## Anti-patterns you must avoid
 
 - "The tests pass" without showing the output. **Always show the output.**
@@ -76,6 +99,7 @@ Do not include opinions on code style, naming, architecture. That's the critic's
 - Re-running a command with different flags until it passes. If it fails, report the failure.
 - Mocking what you're supposed to verify. The point is real behavior.
 - Making the change yourself. You verify what's already done; you do not implement.
+- Disabling the sandbox to make a test pass. If it fails sandboxed, fix the test's hidden dependency (network, secret, out-of-CWD path), don't bypass.
 
 ## When you cannot run the code
 

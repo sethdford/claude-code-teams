@@ -9,11 +9,15 @@
 
 A drop-in upgrade for `~/.claude/` that gives you:
 
-- **13 custom skills** — `/eval`, `/verify`, `/cache-report`, `/team`, `/spec`, `/mine-transcripts`, `/tune-agent`, `/best-of-n`, `/aspect-panel`, `/ab-test`, `/rl-status`, `/eval-author`, `/apply-mining-patches`
-- **16 specialized agents** — verifier, critic, agent-tuner, spec-verifier, plus 12 domain specialists (security-reviewer, migration-planner, latency-profiler, regression-hunter, …)
+- **15 custom skills** — `/eval`, `/verify`, `/cache-report`, `/team`, `/spec`, `/mine-transcripts`, `/tune-agent`, `/best-of-n`, `/aspect-panel`, `/ab-test`, `/rl-status`, `/eval-author`, `/apply-mining-patches`, `/exec-grounded`, `/verify-ui`
+- **16 specialized agents** — verifier (sandbox-aware), critic, agent-tuner, spec-verifier, plus 12 domain specialists
 - **8 auto-firing hooks** — verifier auto-spawns on TaskCompleted, critic auto-runs before commit, eval auto-queues after agent edits, completion-claim phrases nudge `/verify`, cache stats logged at SessionEnd, knowledge entries injected at SessionStart
 - **Eval harness** — programmatic + LLM-judge scoring with regression detection
-- **RL infrastructure** — `rewards.jsonl`, `preferences.jsonl`, per-agent `value/<agent>.json`, best-of-N test-time scaling with USC + confidence-weighted modes, Reflexion-based prompt evolution, A/B testing with reward gating
+- **RL infrastructure** — `rewards.jsonl`, per-agent `value/<agent>.json`, best-of-N test-time scaling with USC + confidence-weighted modes, Reflexion-based prompt evolution, A/B testing with reward gating
+- **Execution-grounded Best-of-N** (Phase H, May 2026) — `/exec-grounded` runs N candidates in sandboxed copies, scores by ACTUAL test pass rate. Mirrors SWE-bench leader pattern (60-80% verification compute). Up to +10-20pp on SWE-bench-style tasks per published baselines.
+- **OS-level sandbox** (Phase H) — `sandbox-exec` (macOS) / `bwrap` (Linux) with credential scrub, deny-list reads, write-only-CWD, network-deny-by-default. Used by verifier for any untrusted code.
+- **Multi-modal UI verification** (Phase H) — `/verify-ui` with Mano-verify pattern (pre/post screenshots + intent → vision-LLM judge). Catches layout drift, missing elements, color regressions.
+- **Skill auto-proposer** (Phase H, Voyager-style) — `/mine-transcripts` extension drafts NEW skill candidates from observed multi-step patterns (≥3 occurrences). Closes the autonomous-improvement loop.
 - **Memory discipline** — A-MEM Zettelkasten linking, Zep-style temporal validity (`valid_from`, `superseded_by`)
 - **Custom statusline** — live cache hit rate, model, cost, context %
 

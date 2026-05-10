@@ -110,6 +110,20 @@ if [[ -f "$REPO_TEMPLATE" ]]; then
   assert "repo settings.json.template is valid JSON" "python3 -c 'import json; json.load(open(\"$REPO_TEMPLATE\"))'"
 fi
 
+# Phase H smoke (delegate)
+echo ""
+echo "--- Phase H ---"
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+if [[ -x "$SCRIPT_DIR/phase_h_smoke.sh" ]]; then
+  if CLAUDE_DIR="$CLAUDE_DIR" bash "$SCRIPT_DIR/phase_h_smoke.sh" >/dev/null 2>&1; then
+    PASS=$((PASS+1))
+    T+=("✓ Phase H smoke (delegated)")
+  else
+    FAIL=$((FAIL+1))
+    T+=("✗ Phase H smoke (run ./tests/phase_h_smoke.sh standalone for detail)")
+  fi
+fi
+
 # Summary
 echo ""
 echo "=========================================="
