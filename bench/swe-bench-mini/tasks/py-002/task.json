@@ -2,15 +2,17 @@
   "id": "py-002",
   "language": "python",
   "size": "small",
-  "summary": "fix race condition in counter increment",
-  "bug_report": "increment_counter() in counter.py is supposed to be thread-safe but uses a non-atomic read-modify-write. Test test_concurrent_increment fails: expected 1000, got <1000.",
+  "summary": "fix CSV line parser that breaks on quoted fields containing commas",
+  "bug_report": "parse_csv_line() in csvparse.py uses naive str.split(',') which breaks any field that contains a comma inside quotes. It also doesn't strip trailing newlines or handle escaped quotes (\"\" inside a quoted field).",
   "contract": [
-    "increment_counter() returns the new value, atomically",
-    "Counter survives concurrent increments from multiple threads (1000 increments from 10 threads × 100 should yield 1000)",
-    "Reset returns counter to 0"
+    "parse_csv_line('a,b,c') returns ['a', 'b', 'c']",
+    "parse_csv_line('\"hello, world\",b,c') returns ['hello, world', 'b', 'c'] — quoted comma is part of the field",
+    "parse_csv_line('\"he said \"\"hi\"\"\",b') returns ['he said \"hi\"', 'b'] — escaped double-quote becomes single double-quote",
+    "parse_csv_line('a,b\\n') returns ['a', 'b'] — trailing newline stripped",
+    "parse_csv_line(',a,,') returns ['', 'a', '', ''] — empty fields preserved"
   ],
   "test_cmd": "python3 -m pytest tests.py -q",
   "max_budget_usd": 0.50,
   "n_rollouts": 3,
-  "files_likely_to_change": ["counter.py"]
+  "files_likely_to_change": ["csvparse.py"]
 }

@@ -1,37 +1,36 @@
-"""Tests for thread-safe counter."""
-import threading
-from counter import Counter
+"""Tests for csvparse.parse_csv_line — DETERMINISTIC failure modes."""
+from csvparse import parse_csv_line
 
 
-def test_basic_increment():
-    c = Counter()
-    assert c.increment() == 1
-    assert c.increment() == 2
-    assert c.get() == 2
+def test_simple_split():
+    assert parse_csv_line("a,b,c") == ["a", "b", "c"]
 
 
-def test_reset():
-    c = Counter()
-    c.increment()
-    c.increment()
-    c.reset()
-    assert c.get() == 0
+def test_quoted_field_with_comma():
+    """The classic CSV gotcha: a comma INSIDE a quoted field should not split."""
+    assert parse_csv_line('"hello, world",b,c') == ["hello, world", "b", "c"]
 
 
-def test_concurrent_increment():
-    c = Counter()
-    n_threads = 10
-    n_per_thread = 100
+def test_escaped_double_quote():
+    """A doubled double-quote inside a quoted field becomes a literal double-quote."""
+    assert parse_csv_line('"he said ""hi""",b') == ['he said "hi"', "b"]
 
-    def worker():
-        for _ in range(n_per_thread):
-            c.increment()
 
-    threads = [threading.Thread(target=worker) for _ in range(n_threads)]
-    for t in threads: t.start()
-    for t in threads: t.join()
+def test_strips_trailing_newline():
+    assert parse_csv_line("a,b\n") == ["a", "b"]
 
-    assert c.get() == n_threads * n_per_thread, (
-        f"expected {n_threads * n_per_thread}, got {c.get()} "
-        "(race condition: read-modify-write not atomic)"
-    )
+
+def test_strips_trailing_crlf():
+    assert parse_csv_line("a,b\r\n") == ["a", "b"]
+
+
+def test_empty_fields_preserved():
+    assert parse_csv_line(",a,,") == ["", "a", "", ""]
+
+
+def test_quoted_at_end():
+    assert parse_csv_line('a,"b,c"') == ["a", "b,c"]
+
+
+def test_no_quotes_no_special():
+    assert parse_csv_line("foo,bar,baz") == ["foo", "bar", "baz"]
