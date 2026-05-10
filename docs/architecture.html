@@ -6,6 +6,9 @@
 <title>Architecture — claude-code-teams</title>
 <meta name="description" content="Design rationale, data flow, and component map for claude-code-teams: skills, agents, hooks, RL, memory, eval harness." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23E97339'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='ui-monospace,SFMono-Regular,monospace' font-size='34' font-weight='700' fill='%23FAF7F2'%3E∞%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -26,12 +29,12 @@
       <a href="index.html#install">Install</a>
       <a href="architecture.html" aria-current="page" class="active">Architecture</a>
       <a href="https://github.com/sethdford/claude-code-teams" class="github" rel="noopener">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.92.58.1.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.18 3.18-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.41.35.78 1.03.78 2.07 0 1.5-.01 2.71-.01 3.08 0 .31.21.67.8.56 4.57-1.53 7.86-5.84 7.86-10.92C23.5 5.65 18.35.5 12 .5z"/></svg>
+        <svg class="icon" aria-hidden="true"><use href="icons.svg#github"/></svg>
         GitHub
       </a>
       <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
-        <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 17a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1zm10-9a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zM5 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zm14.07-7.07a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 1 1-1.41-1.41l1.41-1.41a1 1 0 0 1 1.41 0zM7.76 16.24a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 1 1-1.41-1.41l1.41-1.41a1 1 0 0 1 1.41 0zm11.31 1.41a1 1 0 0 1-1.41 1.41l-1.41-1.41a1 1 0 1 1 1.41-1.41l1.41 1.41zM7.76 7.76a1 1 0 0 1-1.41 1.41L4.93 7.76a1 1 0 0 1 1.41-1.41l1.41 1.41z"/></svg>
-        <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon icon-sun" aria-hidden="true"><use href="icons.svg#sun"/></svg>
+        <svg class="icon icon-moon" aria-hidden="true"><use href="icons.svg#moon"/></svg>
       </button>
     </nav>
   </div>
@@ -345,8 +348,8 @@ skills/mine-transcripts/
     <h2>Ready to install?</h2>
     <p>Single-command install symlinks <code>claude/</code> into <code>~/.claude/</code>. Idempotent. Fully reversible.</p>
     <div class="cta-row">
-      <a class="btn primary" href="index.html#install">Install instructions →</a>
-      <a class="btn ghost" href="https://github.com/sethdford/claude-code-teams" rel="noopener">Source on GitHub</a>
+      <a class="btn primary" href="index.html#install">Install instructions <svg class="icon icon-sm" aria-hidden="true"><use href="icons.svg#arrow-right"/></svg></a>
+      <a class="btn ghost" href="https://github.com/sethdford/claude-code-teams" rel="noopener"><svg class="icon icon-sm" aria-hidden="true"><use href="icons.svg#github"/></svg> Source on GitHub</a>
     </div>
   </div>
 </section>
