@@ -1,0 +1,14 @@
+{
+  "n": 3,
+  "winner_idx": 2,
+  "winner_score": -1.0,
+  "winner_test_stats": {
+    "passed": 5,
+    "failed": 3,
+    "total": 8,
+    "runner": "pytest",
+    "skipped": 0
+  },
+  "spread": 0.0,
+  "out_dir": "/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/runs/20260510T161732Z/py-001"
+}

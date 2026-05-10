@@ -89,13 +89,25 @@ def parse_test_output(stdout: str, stderr: str) -> dict:
         total = int(m.group(3))
         return {"passed": passed, "failed": failed, "total": total, "runner": "jest"}
 
-    # pytest pattern: "N passed, M failed, K errors in T s"
-    m = re.search(r"(\d+) passed(?:, (\d+) failed)?(?:, (\d+) error)?", text)
-    if m:
-        passed = int(m.group(1))
-        failed = int(m.group(2)) if m.group(2) else 0
-        errors = int(m.group(3)) if m.group(3) else 0
-        return {"passed": passed, "failed": failed + errors, "total": passed + failed + errors, "runner": "pytest"}
+    # pytest: pieces can appear in either order ("3 failed, 5 passed" OR "5 passed, 3 failed").
+    # Look up each independently, then sanity-check by extracting all relevant counts.
+    m_passed = re.search(r"(\d+) passed", text)
+    m_failed = re.search(r"(\d+) failed", text)
+    m_errors = re.search(r"(\d+) error", text)
+    m_skipped = re.search(r"(\d+) skipped", text)
+    if m_passed or m_failed or m_errors:
+        passed = int(m_passed.group(1)) if m_passed else 0
+        failed = int(m_failed.group(1)) if m_failed else 0
+        errors = int(m_errors.group(1)) if m_errors else 0
+        skipped = int(m_skipped.group(1)) if m_skipped else 0
+        total = passed + failed + errors + skipped
+        return {
+            "passed": passed,
+            "failed": failed + errors,
+            "total": total,
+            "runner": "pytest",
+            "skipped": skipped,
+        }
 
     # go test: count PASS/FAIL lines
     if "PASS" in text or "FAIL" in text:
@@ -134,6 +146,42 @@ def verify_in_sandbox(workdir: Path, test_cmd: list[str], allow_network: bool = 
     return result
 
 
+def detect_api_error(jsonl_path: Path) -> dict | None:
+    """Scan rollout JSONL for an Anthropic API error event. Returns error dict or None."""
+    if not jsonl_path.exists():
+        return None
+    try:
+        for line in jsonl_path.read_text().splitlines():
+            try:
+                evt = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if evt.get("type") == "result" and evt.get("is_error"):
+                return {
+                    "api_status": evt.get("api_error_status"),
+                    "result": evt.get("result", "")[:300],
+                }
+            if evt.get("error") == "authentication_failed":
+                return {"api_status": 401, "result": "authentication_failed"}
+    except OSError:
+        pass
+    return None
+
+
+def detect_workdir_changes(workdir: Path) -> bool:
+    """Did the rollout actually modify any file in workdir?"""
+    try:
+        # Check mtime — if any non-staged file is newer than the workdir creation time,
+        # something was edited. Cheap heuristic.
+        wd_ctime = workdir.stat().st_ctime
+        for f in workdir.rglob("*"):
+            if f.is_file() and f.stat().st_mtime > wd_ctime + 1:
+                return True
+    except OSError:
+        return False
+    return False
+
+
 def run_rollout(idx: int, agent: str, prompt: str, workdir: Path, run_dir: Path,
                 test_cmd: list[str], max_budget: float, allow_network: bool) -> dict:
     """Run one rollout: agent works in workdir, then test_cmd runs in sandbox."""
@@ -160,6 +208,12 @@ def run_rollout(idx: int, agent: str, prompt: str, workdir: Path, run_dir: Path,
 
     rollout_elapsed = time.time() - start
 
+    # Detect API errors (rate limit, auth, server) — these mean the rollout
+    # didn't actually run, so we can't score it as PASS just because tests passed
+    # on the unmodified pre-fix code.
+    api_error = detect_api_error(jsonl)
+    workdir_changed = detect_workdir_changes(workdir)
+
     # Verify in sandbox
     verify_start = time.time()
     verify_result = verify_in_sandbox(workdir, test_cmd, allow_network=allow_network)
@@ -172,7 +226,7 @@ def run_rollout(idx: int, agent: str, prompt: str, workdir: Path, run_dir: Path,
             for m in re.finditer(r"RESULT_([\w-]+)=([A-Z_]+(?:_\d+)*)", line):
                 results.setdefault(m.group(1), m.group(2))
 
-    return {
+    out = {
         "idx": idx,
         "workdir": str(workdir),
         "rollout_exit": rollout_exit,
@@ -183,11 +237,34 @@ def run_rollout(idx: int, agent: str, prompt: str, workdir: Path, run_dir: Path,
         "results": results,
         "verify_stdout_excerpt": verify_result.get("stdout", "")[-500:],
         "verify_stderr_excerpt": verify_result.get("stderr", "")[-500:],
+        "workdir_changed": workdir_changed,
     }
+    if api_error:
+        out["api_error"] = api_error
+    return out
 
 
 def score_rollout(rollout: dict) -> float:
-    """Combined score in [-1, 1]. test_score dominates (0.7 weight)."""
+    """Combined score in [-1, 1]. test_score dominates (0.7 weight).
+
+    Hard guards:
+      - API error → score = -1.0 (rollout failed before doing anything)
+      - No workdir changes AND no API error → score = -1.0 (agent didn't try)
+    """
+    if rollout.get("api_error"):
+        rollout["test_score"] = -1.0
+        rollout["critic_score"] = 0.0
+        rollout["score"] = -1.0
+        rollout["reason"] = f"API error: {rollout['api_error']}"
+        return -1.0
+
+    if not rollout.get("workdir_changed", True):
+        rollout["test_score"] = -1.0
+        rollout["critic_score"] = 0.0
+        rollout["score"] = -1.0
+        rollout["reason"] = "agent made no changes to workdir"
+        return -1.0
+
     stats = rollout.get("test_stats", {}) or {}
     total = stats.get("total", 0)
     passed = stats.get("passed", 0)

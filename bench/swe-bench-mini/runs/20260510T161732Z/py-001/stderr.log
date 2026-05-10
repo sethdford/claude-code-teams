@@ -1,0 +1,3 @@
+[exec-grounded] agent=general-purpose n=3 target=/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/tasks/py-001/repo
+[exec-grounded] test_cmd=['python3', '-m', 'pytest', 'tests.py', '-q']
+[exec-grounded] run_dir=/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/runs/20260510T161732Z/py-001

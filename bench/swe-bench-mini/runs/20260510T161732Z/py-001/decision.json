@@ -1,0 +1,111 @@
+{
+  "ts": "20260510T161732Z",
+  "agent": "general-purpose",
+  "n": 3,
+  "target_dir": "/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/tasks/py-001/repo",
+  "test_cmd": [
+    "python3",
+    "-m",
+    "pytest",
+    "tests.py",
+    "-q"
+  ],
+  "rollouts": [
+    {
+      "idx": 2,
+      "workdir": "/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/runs/20260510T161732Z/py-001/work-2",
+      "rollout_exit": 1,
+      "rollout_elapsed_s": 3.14,
+      "verify_exit": 1,
+      "verify_elapsed_s": 0.39,
+      "test_stats": {
+        "passed": 5,
+        "failed": 3,
+        "total": 8,
+        "runner": "pytest",
+        "skipped": 0
+      },
+      "results": {},
+      "verify_stdout_excerpt": " [10, 11, 12, 13, 14, 15, ...]\nE         \nE         Right contains one more item: 19\nE         Use -v to get more diff\n\ntests.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests.py::test_first_page - assert [0, 1, 2, 3, 4, 5, ...] == [0, 1, 2...\nFAILED tests.py::test_middle_page - assert [10, 11, 12, 13, 14, 15, ...] == [...\nFAILED tests.py::test_exact_boundary - assert [10, 11, 12, 13, 14, 15, ...] =...\n3 failed, 5 passed in 0.02s\n",
+      "verify_stderr_excerpt": "",
+      "workdir_changed": false,
+      "api_error": {
+        "api_status": 429,
+        "result": "You're out of extra usage \u00b7 resets May 14 at 2pm (America/New_York)"
+      },
+      "test_score": -1.0,
+      "critic_score": 0.0,
+      "score": -1.0,
+      "reason": "API error: {'api_status': 429, 'result': \"You're out of extra usage \u00b7 resets May 14 at 2pm (America/New_York)\"}"
+    },
+    {
+      "idx": 1,
+      "workdir": "/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/runs/20260510T161732Z/py-001/work-1",
+      "rollout_exit": 1,
+      "rollout_elapsed_s": 3.56,
+      "verify_exit": 1,
+      "verify_elapsed_s": 0.42,
+      "test_stats": {
+        "passed": 5,
+        "failed": 3,
+        "total": 8,
+        "runner": "pytest",
+        "skipped": 0
+      },
+      "results": {},
+      "verify_stdout_excerpt": " [10, 11, 12, 13, 14, 15, ...]\nE         \nE         Right contains one more item: 19\nE         Use -v to get more diff\n\ntests.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests.py::test_first_page - assert [0, 1, 2, 3, 4, 5, ...] == [0, 1, 2...\nFAILED tests.py::test_middle_page - assert [10, 11, 12, 13, 14, 15, ...] == [...\nFAILED tests.py::test_exact_boundary - assert [10, 11, 12, 13, 14, 15, ...] =...\n3 failed, 5 passed in 0.02s\n",
+      "verify_stderr_excerpt": "",
+      "workdir_changed": false,
+      "api_error": {
+        "api_status": 429,
+        "result": "You're out of extra usage \u00b7 resets May 14 at 2pm (America/New_York)"
+      },
+      "test_score": -1.0,
+      "critic_score": 0.0,
+      "score": -1.0,
+      "reason": "API error: {'api_status': 429, 'result': \"You're out of extra usage \u00b7 resets May 14 at 2pm (America/New_York)\"}"
+    },
+    {
+      "idx": 0,
+      "workdir": "/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/runs/20260510T161732Z/py-001/work-0",
+      "rollout_exit": 1,
+      "rollout_elapsed_s": 3.63,
+      "verify_exit": 1,
+      "verify_elapsed_s": 0.41,
+      "test_stats": {
+        "passed": 5,
+        "failed": 3,
+        "total": 8,
+        "runner": "pytest",
+        "skipped": 0
+      },
+      "results": {},
+      "verify_stdout_excerpt": " [10, 11, 12, 13, 14, 15, ...]\nE         \nE         Right contains one more item: 19\nE         Use -v to get more diff\n\ntests.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests.py::test_first_page - assert [0, 1, 2, 3, 4, 5, ...] == [0, 1, 2...\nFAILED tests.py::test_middle_page - assert [10, 11, 12, 13, 14, 15, ...] == [...\nFAILED tests.py::test_exact_boundary - assert [10, 11, 12, 13, 14, 15, ...] =...\n3 failed, 5 passed in 0.02s\n",
+      "verify_stderr_excerpt": "",
+      "workdir_changed": false,
+      "api_error": {
+        "api_status": 429,
+        "result": "You're out of extra usage \u00b7 resets May 14 at 2pm (America/New_York)"
+      },
+      "test_score": -1.0,
+      "critic_score": 0.0,
+      "score": -1.0,
+      "reason": "API error: {'api_status': 429, 'result': \"You're out of extra usage \u00b7 resets May 14 at 2pm (America/New_York)\"}"
+    }
+  ],
+  "winner": {
+    "idx": 2,
+    "score": -1.0,
+    "test_score": -1.0,
+    "critic_score": 0.0,
+    "test_stats": {
+      "passed": 5,
+      "failed": 3,
+      "total": 8,
+      "runner": "pytest",
+      "skipped": 0
+    },
+    "workdir": "/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/runs/20260510T161732Z/py-001/work-2"
+  },
+  "out_dir": "/Users/sethford/Documents/claude-code-teams/bench/swe-bench-mini/runs/20260510T161732Z/py-001"
+}
