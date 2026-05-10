@@ -17,14 +17,17 @@ for f in product-owner scrum-master tech-lead sprint-auditor; do
   assert "$f.md has RESULT_ contract" "grep -q 'RESULT_$f=' $CLAUDE_DIR/agents/$f.md"
 done
 
-# 3. NORMAL mode passes
-NORMAL_OUT="$($REPO_DIR/bench/scrum-e2e-demo/demo.sh 2>&1 || true)"
-assert "demo NORMAL exits with PASS verdict" "echo \"\$NORMAL_OUT\" | grep -q 'Sprint CLOSED — all ACs delivered'"
+# 3. NORMAL mode passes — write to tempfile so shellcheck sees the use site
+TMP_NORMAL=$(mktemp)
+"$REPO_DIR/bench/scrum-e2e-demo/demo.sh" >"$TMP_NORMAL" 2>&1 || true
+assert "demo NORMAL exits with PASS verdict" "grep -q 'Sprint CLOSED — all ACs delivered' '$TMP_NORMAL'"
 
 # 4. BREAK-IT mode catches drift
-BREAK_OUT="$($REPO_DIR/bench/scrum-e2e-demo/demo.sh --break-it 2>&1 || true)"
-assert "demo BREAK-IT catches drift" "echo \"\$BREAK_OUT\" | grep -q 'Sprint BLOCKED'"
-assert "demo BREAK-IT cites the specific drift" "echo \"\$BREAK_OUT\" | grep -qi 'drift'"
+TMP_BREAK=$(mktemp)
+"$REPO_DIR/bench/scrum-e2e-demo/demo.sh" --break-it >"$TMP_BREAK" 2>&1 || true
+assert "demo BREAK-IT catches drift" "grep -q 'Sprint BLOCKED' '$TMP_BREAK'"
+assert "demo BREAK-IT cites the specific drift" "grep -qi 'drift' '$TMP_BREAK'"
+rm -f "$TMP_NORMAL" "$TMP_BREAK"
 
 echo ""
 echo "SCRUM smoke: $PASS passed, $FAIL failed"
