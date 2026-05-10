@@ -39,15 +39,20 @@ jobs:
           find claude -name "*.py" -type f -exec chmod +x {} +
           find claude -name "*.sh" -type f -exec chmod +x {} +
 
-      - name: Run smoke test against repo dir
-        env:
-          CLAUDE_DIR: ${{ github.workspace }}/claude
-        run: ./tests/smoke.sh
-
-      - name: Run SCRUM smoke standalone (to surface failure detail)
+      - name: Run SCRUM smoke standalone (verbose detail)
         env:
           CLAUDE_DIR: ${{ github.workspace }}/claude
         run: ./tests/scrum_smoke.sh
+
+      - name: Run Phase H smoke standalone (verbose detail)
+        env:
+          CLAUDE_DIR: ${{ github.workspace }}/claude
+        run: ./tests/phase_h_smoke.sh
+
+      - name: Run main smoke against repo dir
+        env:
+          CLAUDE_DIR: ${{ github.workspace }}/claude
+        run: ./tests/smoke.sh
 
       - name: Run install + smoke against installed location
         run: |
