@@ -37,7 +37,7 @@ backup_if_real() {
 
 if (( UNINSTALL )); then
   echo "Uninstalling claude-code-teams symlinks from $DEST..."
-  for sub in skills agents rules hooks evals rl knowledge statusline scripts; do
+  for sub in skills agents rules hooks evals rl knowledge statusline scripts sandbox; do
     [[ -L "$DEST/$sub" ]] && { rm "$DEST/$sub"; echo "  removed $DEST/$sub"; }
   done
   for f in CLAUDE.md settings.json.template; do
@@ -52,7 +52,7 @@ echo "Installing claude-code-teams from $SRC into $DEST..."
 echo ""
 
 # Symlink directories that don't exist or already contain our content
-for sub in skills agents rules hooks evals rl knowledge statusline scripts; do
+for sub in skills agents rules hooks evals rl knowledge statusline scripts sandbox; do
   if [[ -e "$DEST/$sub" && ! -L "$DEST/$sub" ]]; then
     echo "WARN: $DEST/$sub exists and is not a symlink."
     if confirm "  Move existing $DEST/$sub to ${DEST}/${sub}.bak.${TS} and symlink in?"; then
