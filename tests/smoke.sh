@@ -90,7 +90,6 @@ assert "statusline contains '0.42' (cost)" "echo '$SL_OUT' | grep -q '0.42'"
 echo ""
 echo "--- log-cache-stats real-schema ---"
 TEST_DIR="$(mktemp -d)"
-HOME_BACKUP="$HOME"
 TEST_HOME="$TEST_DIR/fakehome"
 mkdir -p "$TEST_HOME/.claude"
 HOME="$TEST_HOME" \

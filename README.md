@@ -2,7 +2,7 @@
 
 > A production-realistic, arXiv-grounded SOTA setup for Anthropic's Claude Code: native multi-agent orchestration, eval harness, RL-style reward telemetry, Reflexion-based prompt evolution, and seamless auto-firing hooks.
 
-[![Smoke Test](https://github.com/USER/claude-code-teams/actions/workflows/smoke.yml/badge.svg)](.github/workflows/smoke.yml)
+[![Smoke Test](https://github.com/sethdford/claude-code-teams/actions/workflows/smoke.yml/badge.svg)](https://github.com/sethdford/claude-code-teams/actions/workflows/smoke.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## What this is
@@ -48,7 +48,7 @@ Each gain is small; stacked, they compound. See [`docs/architecture.md`](docs/ar
 
 ```bash
 # Clone
-git clone https://github.com/USER/claude-code-teams.git
+git clone https://github.com/sethdford/claude-code-teams.git
 cd claude-code-teams
 
 # Inspect what you'd install
