@@ -20,12 +20,26 @@ done
 # 3. NORMAL mode passes — write to tempfile so shellcheck sees the use site
 TMP_NORMAL=$(mktemp)
 "$REPO_DIR/bench/scrum-e2e-demo/demo.sh" >"$TMP_NORMAL" 2>&1 || true
-assert "demo NORMAL exits with PASS verdict" "grep -q 'Sprint CLOSED — all ACs delivered' '$TMP_NORMAL'"
+if grep -q 'Sprint CLOSED — all ACs delivered' "$TMP_NORMAL"; then
+  PASS=$((PASS+1)); T+=("✓ demo NORMAL exits with PASS verdict")
+else
+  FAIL=$((FAIL+1)); T+=("✗ demo NORMAL exits with PASS verdict")
+  echo "─── NORMAL output (last 40 lines) ───" >&2
+  tail -40 "$TMP_NORMAL" >&2
+  echo "─── (end) ───" >&2
+fi
 
 # 4. BREAK-IT mode catches drift
 TMP_BREAK=$(mktemp)
 "$REPO_DIR/bench/scrum-e2e-demo/demo.sh" --break-it >"$TMP_BREAK" 2>&1 || true
-assert "demo BREAK-IT catches drift" "grep -q 'Sprint BLOCKED' '$TMP_BREAK'"
+if grep -q 'Sprint BLOCKED' "$TMP_BREAK"; then
+  PASS=$((PASS+1)); T+=("✓ demo BREAK-IT catches drift")
+else
+  FAIL=$((FAIL+1)); T+=("✗ demo BREAK-IT catches drift")
+  echo "─── BREAK-IT output (last 40 lines) ───" >&2
+  tail -40 "$TMP_BREAK" >&2
+  echo "─── (end) ───" >&2
+fi
 assert "demo BREAK-IT cites the specific drift" "grep -qi 'drift' '$TMP_BREAK'"
 rm -f "$TMP_NORMAL" "$TMP_BREAK"
 
