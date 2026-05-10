@@ -25,11 +25,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Verify tools available
+      - name: Verify tools available + install pytest (used by SCRUM demo)
         run: |
           bash --version | head -1
           jq --version
           python3 --version
+          python3 -m pip install --quiet pytest
 
       - name: Make scripts executable
         run: |
