@@ -1,0 +1,53 @@
+# User-specific runtime data — never commit
+claude/telemetry/
+claude/projects/
+claude/agent-memory/
+claude/lessons.md
+claude/MEMORY.md
+claude/history.jsonl
+claude/mcp.json
+claude/policy-limits.json
+claude/remote-settings.json
+claude/security_warnings_state_*.json
+claude/scheduled_tasks.lock
+claude/.last-cleanup
+claude/CLAUDE.md.bak.*
+claude/settings.json.bak.*
+claude/extracted-project-rules.md
+claude/backups/
+claude/cache/
+claude/chromadb/
+claude/chrome/
+claude/debug/
+claude/downloads/
+claude/file-history/
+claude/paste-cache/
+claude/plugins/
+claude/session-env/
+claude/agents/.history/
+
+# Eval / mining run outputs (per-machine, regenerated)
+claude/evals/runs/
+claude/rl/best-of-n-runs/
+claude/rl/aspect-panel-runs/
+claude/rl/value/
+claude/rl/policy/*/candidates/
+claude/rl/policy/*/history/
+claude/rl/policy/*/ab-runs/
+claude/rl/rewards.jsonl
+claude/rl/preferences.jsonl
+
+# OS junk
+.DS_Store
+*.swp
+*.tmp
+__pycache__/
+*.pyc
+
+# Editor
+.vscode/
+.idea/
+
+# Test outputs
+tests/e2e/runs/
+tests/fixtures/tmp/

@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "required": ["corrections", "patterns", "failure_modes"],
+  "properties": {
+    "corrections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["summary", "evidence", "tags"],
+        "properties": {
+          "summary": {"type": "string", "maxLength": 100},
+          "evidence": {"type": "string", "maxLength": 300},
+          "tags": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
+          "weak": {"type": "boolean"}
+        }
+      }
+    },
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["summary", "evidence", "tags"],
+        "properties": {
+          "summary": {"type": "string", "maxLength": 100},
+          "evidence": {"type": "string", "maxLength": 300},
+          "tags": {"type": "array", "items": {"type": "string"}, "maxItems": 3}
+        }
+      }
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["summary", "evidence", "tags"],
+        "properties": {
+          "summary": {"type": "string", "maxLength": 100},
+          "evidence": {"type": "string", "maxLength": 300},
+          "tags": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
+          "weak": {"type": "boolean"},
+          "responsible_agent": {"type": "string", "description": "agent name if a specific agent was at fault"}
+        }
+      }
+    }
+  }
+}

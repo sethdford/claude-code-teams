@@ -1,0 +1,74 @@
+# Smoke test workflow.
+# All `run:` blocks operate only on repo-local files; no untrusted GitHub event
+# data is interpolated into shell commands. See:
+# https://github.blog/security/vulnerability-research/how-to-catch-github-actions-workflow-injections-before-attackers-do/
+
+name: Smoke Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify tools available
+        run: |
+          bash --version | head -1
+          jq --version
+          python3 --version
+
+      - name: Make scripts executable
+        run: |
+          chmod +x install.sh tests/smoke.sh tests/e2e/*.sh
+          chmod +x claude/hooks/*.sh claude/evals/_runner/*.sh
+          find claude -name "*.py" -type f -exec chmod +x {} +
+          find claude -name "*.sh" -type f -exec chmod +x {} +
+
+      - name: Run smoke test against repo dir
+        env:
+          CLAUDE_DIR: ${{ github.workspace }}/claude
+        run: ./tests/smoke.sh
+
+      - name: Run install + smoke against installed location
+        run: |
+          ./install.sh --yes
+          ./tests/smoke.sh
+
+  python-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile-check all Python
+        run: python3 -m compileall -q claude/ tests/
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Lint shell scripts
+        run: |
+          set +e
+          fail=0
+          for f in $(find claude tests install.sh -name "*.sh" -type f); do
+            shellcheck -S warning "$f" || fail=1
+          done
+          exit $fail

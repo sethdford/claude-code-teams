@@ -1,0 +1,92 @@
+{
+  "_comment": "Template settings.json for claude-code-teams. Merge into your existing ~/.claude/settings.json — DO NOT replace it wholesale (you'll lose your existing permissions/plugins).",
+
+  "env": {
+    "CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE": "70",
+    "CLAUDE_CODE_EFFORT_LEVEL": "high",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "haiku",
+    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "5",
+    "ENABLE_TOOL_SEARCH": "auto"
+  },
+
+  "statusLine": {
+    "type": "command",
+    "command": "python3 ~/.claude/statusline/statusline.py"
+  },
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-start-knowledge.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '## Critical post-compaction context'; echo ''; echo 'Top priorities: /verify before claiming task done; Plan Mode for non-trivial; hooks > CLAUDE.md.'; echo ''; ~/.claude/hooks/session-start-knowledge.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] compaction\" >> ~/.claude/telemetry/compactions.log",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {"type": "command", "command": "~/.claude/hooks/log-cache-stats.sh", "timeout": 10},
+          {"type": "command", "command": "python3 ~/.claude/rl/emit_session_rewards.py", "timeout": 10}
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {"type": "command", "command": "~/.claude/hooks/auto-verify-on-complete.sh", "timeout": 120},
+          {"type": "command", "command": "python3 ~/.claude/rl/emit_task_reward.py", "timeout": 5}
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/rl/emit_correction_signal.py", "timeout": 3},
+          {"type": "command", "command": "~/.claude/hooks/completion-claim-detector.sh", "timeout": 3}
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {"type": "command", "command": "~/.claude/hooks/auto-critic-on-commit.sh", "timeout": 130}
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {"type": "command", "command": "~/.claude/hooks/auto-eval-on-agent-edit.sh", "timeout": 5}
+        ]
+      }
+    ]
+  }
+}
