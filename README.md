@@ -5,6 +5,8 @@
 [![Smoke Test](https://github.com/sethdford/claude-code-teams/actions/workflows/smoke.yml/badge.svg)](https://github.com/sethdford/claude-code-teams/actions/workflows/smoke.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+🌐 **Site:** [sethdford.github.io/claude-code-teams](https://sethdford.github.io/claude-code-teams/) · 🏛️ [Architecture](https://sethdford.github.io/claude-code-teams/architecture.html) · 📚 [arXiv references](docs/arxiv-references.md)
+
 ## What this is
 
 A drop-in upgrade for `~/.claude/` that gives you:
