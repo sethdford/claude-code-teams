@@ -44,6 +44,11 @@ jobs:
           CLAUDE_DIR: ${{ github.workspace }}/claude
         run: ./tests/smoke.sh
 
+      - name: Run SCRUM smoke standalone (to surface failure detail)
+        env:
+          CLAUDE_DIR: ${{ github.workspace }}/claude
+        run: ./tests/scrum_smoke.sh
+
       - name: Run install + smoke against installed location
         run: |
           ./install.sh --yes
