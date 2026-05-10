@@ -16,7 +16,13 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SR="$HOME/.claude/sandbox/sandbox_run.py"
+# Use CLAUDE_DIR if set (CI mode); fall back to home install
+CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
+SR="$CLAUDE_DIR/sandbox/sandbox_run.py"
+# If sandbox runner not found at CLAUDE_DIR, try the repo's own copy
+if [[ ! -x "$SR" ]] && [[ -x "$REPO_ROOT/claude/sandbox/sandbox_run.py" ]]; then
+  SR="$REPO_ROOT/claude/sandbox/sandbox_run.py"
+fi
 SPRINT_DIR=$(mktemp -d -t scrum-demo-XXXXXX)
 SPRINT_NUM=1
 N=$SPRINT_NUM
@@ -223,9 +229,13 @@ run_verifier() {
   python3 "$SR" --cwd "$workdir" --json -- python3 -m pytest tests.py -q \
     > "$SPRINT/evidence/$us/verifier.json" 2>&1 || true
 
-  python3 - "$SPRINT/evidence/$us/verifier.json" <<'PYEOF'
+  EG_PATH="$CLAUDE_DIR/rl/exec_grounded.py"
+  if [[ ! -f "$EG_PATH" ]] && [[ -f "$REPO_ROOT/claude/rl/exec_grounded.py" ]]; then
+    EG_PATH="$REPO_ROOT/claude/rl/exec_grounded.py"
+  fi
+  python3 - "$SPRINT/evidence/$us/verifier.json" "$EG_PATH" <<'PYEOF'
 import json, sys, importlib.util
-spec = importlib.util.spec_from_file_location("eg", f"{__import__('os').path.expanduser('~')}/.claude/rl/exec_grounded.py")
+spec = importlib.util.spec_from_file_location("eg", sys.argv[2])
 eg = importlib.util.module_from_spec(spec); spec.loader.exec_module(eg)
 r = json.load(open(sys.argv[1]))
 stats = eg.parse_test_output(r['stdout'], r['stderr'])
