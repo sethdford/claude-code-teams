@@ -1,0 +1,16 @@
+{
+  "id": "py-001",
+  "language": "python",
+  "size": "small",
+  "summary": "fix off-by-one in pagination helper",
+  "bug_report": "next_page() in pagination.py returns one too few items on the boundary case where total items is exactly divisible by page_size. Last page has 0 items instead of full page.",
+  "contract": [
+    "next_page(items, page_index, page_size=10) returns items[page_index*page_size:(page_index+1)*page_size]",
+    "Returns empty list if page_index is past end",
+    "Raises ValueError if page_index < 0 or page_size <= 0"
+  ],
+  "test_cmd": "python3 -m pytest tests.py -q",
+  "max_budget_usd": 0.50,
+  "n_rollouts": 3,
+  "files_likely_to_change": ["pagination.py"]
+}

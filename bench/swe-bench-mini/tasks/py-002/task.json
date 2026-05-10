@@ -1,0 +1,16 @@
+{
+  "id": "py-002",
+  "language": "python",
+  "size": "small",
+  "summary": "fix race condition in counter increment",
+  "bug_report": "increment_counter() in counter.py is supposed to be thread-safe but uses a non-atomic read-modify-write. Test test_concurrent_increment fails: expected 1000, got <1000.",
+  "contract": [
+    "increment_counter() returns the new value, atomically",
+    "Counter survives concurrent increments from multiple threads (1000 increments from 10 threads × 100 should yield 1000)",
+    "Reset returns counter to 0"
+  ],
+  "test_cmd": "python3 -m pytest tests.py -q",
+  "max_budget_usd": 0.50,
+  "n_rollouts": 3,
+  "files_likely_to_change": ["counter.py"]
+}
