@@ -226,8 +226,10 @@ echo "▶ Phase 5: Verifier runs tests in sandbox (REAL execution)"
 run_verifier() {
   local us="$1" workdir="$2"
   mkdir -p "$SPRINT/evidence/$us"
+  # Stdout=JSON only; stderr (any sandbox warnings, e.g. "no isolation" on
+  # Linux without bwrap) goes to a sibling file, never mixed into the JSON.
   python3 "$SR" --cwd "$workdir" --json -- python3 -m pytest tests.py -q \
-    > "$SPRINT/evidence/$us/verifier.json" 2>&1 || true
+    > "$SPRINT/evidence/$us/verifier.json" 2>"$SPRINT/evidence/$us/sandbox.stderr" || true
 
   EG_PATH="$CLAUDE_DIR/rl/exec_grounded.py"
   if [[ ! -f "$EG_PATH" ]] && [[ -f "$REPO_ROOT/claude/rl/exec_grounded.py" ]]; then
