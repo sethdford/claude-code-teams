@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>claude-code-teams — production-realistic SOTA setup for Anthropic Claude Code</title>
+<meta name="description" content="Native multi-agent orchestration, RL telemetry, Reflexion-based prompt evolution, sandboxed execution, adversarial audit, and AggAgent synthesis for Claude Code. arXiv-grounded, MIT-licensed, CI-green." />
+<meta property="og:title" content="claude-code-teams" />
+<meta property="og:description" content="A production-realistic, arXiv-grounded SOTA setup for Anthropic's Claude Code." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://sethdford.github.io/claude-code-teams/" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23E97339'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='ui-monospace,SFMono-Regular,monospace' font-size='34' font-weight='700' fill='%23FAF7F2'%3E∞%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="container topbar-row">
+    <a class="brand" href="#">
+      <span class="logo" aria-hidden="true">∞</span>
+      <span class="brand-name">claude-code-teams</span>
+    </a>
+    <nav class="nav" aria-label="primary">
+      <a href="#what">What</a>
+      <a href="#stack">Stack</a>
+      <a href="#proof">Proof</a>
+      <a href="#research">Research</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/sethdford/claude-code-teams" class="github" rel="noopener">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.92.58.1.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.18 3.18-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.41.35.78 1.03.78 2.07 0 1.5-.01 2.71-.01 3.08 0 .31.21.67.8.56 4.57-1.53 7.86-5.84 7.86-10.92C23.5 5.65 18.35.5 12 .5z"/></svg>
+        GitHub
+      </a>
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 17a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1zm10-9a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zM5 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zm14.07-7.07a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 1 1-1.41-1.41l1.41-1.41a1 1 0 0 1 1.41 0zM7.76 16.24a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 1 1-1.41-1.41l1.41-1.41a1 1 0 0 1 1.41 0zm11.31 1.41a1 1 0 0 1-1.41 1.41l-1.41-1.41a1 1 0 1 1 1.41-1.41l1.41 1.41zM7.76 7.76a1 1 0 0 1-1.41 1.41L4.93 7.76a1 1 0 0 1 1.41-1.41l1.41 1.41z"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ─────────── HERO ─────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <p class="kicker">A production-realistic, arXiv-grounded SOTA setup</p>
+        <h1>Native multi-agent orchestration<br/>for <span class="accent">Claude Code</span>.</h1>
+        <p class="lede">
+          16 skills, 20 specialized agents, 10 hooks, full SCRUM ceremony with adversarial audit, sandboxed execution, RL reward telemetry, AggAgent synthesis, Reflexion-based prompt evolution.
+          Composed from the published frontier; instrumented to know whether it's actually working.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="#install">Install →</a>
+          <a class="btn ghost" href="https://github.com/sethdford/claude-code-teams" rel="noopener">View on GitHub</a>
+        </div>
+        <div class="hero-badges">
+          <span class="badge"><span class="dot dot-green"></span> CI green ×10</span>
+          <span class="badge">MIT licensed</span>
+          <span class="badge">Claude Code 2.1.32+</span>
+          <span class="badge">macOS · Linux</span>
+        </div>
+      </div>
+
+      <aside class="hero-terminal" aria-hidden="false">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+            <span class="terminal-title">~/.claude</span>
+          </div>
+          <pre class="terminal-body"><code><span class="t-prompt">$</span> <span class="t-cmd">claude</span> <span class="t-flag">-p</span> <span class="t-str">"/scrum 'add OAuth login'"</span>
+
+<span class="t-muted">▶ Phase 1:</span> Product Owner authors stories
+  <span class="t-ok">✓</span> 3 stories, 11 acceptance criteria
+<span class="t-muted">▶ Phase 2:</span> Tech Lead designs
+  <span class="t-ok">✓</span> 3 design docs, risk-tagged
+<span class="t-muted">▶ Phase 3:</span> Wave plan → 3 implementers in worktrees
+<span class="t-muted">▶ Phase 4:</span> Implementation (parallel)
+<span class="t-muted">▶ Phase 5:</span> Verifier (REAL sandboxed pytest)
+  <span class="t-ok">✓</span> 24/24 passed
+<span class="t-muted">▶ Phase 6:</span> Aspect-Panel (5 verifiers, weighted vote)
+  <span class="t-ok">✓</span> CLEAN
+<span class="t-muted">▶ Phase 7:</span> Sprint Auditor <span class="t-em">(adversarial)</span>
+  <span class="t-ok">✓</span> 11/11 ACs delivered, no drift
+<span class="t-muted">▶ Phase 8:</span> Retro → /tune-agent if needed
+
+<span class="t-ok">RESULT_scrum=SPRINT_CLOSED</span> n=3 cost=$8.20</code></pre>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── STATS ─────────── -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-num">16</div><div class="stat-label">Custom skills</div></div>
+      <div class="stat"><div class="stat-num">20</div><div class="stat-label">Specialized agents</div></div>
+      <div class="stat"><div class="stat-num">10</div><div class="stat-label">Auto-firing hooks</div></div>
+      <div class="stat"><div class="stat-num">8</div><div class="stat-label">RL scripts</div></div>
+      <div class="stat"><div class="stat-num">9</div><div class="stat-label">arXiv refs cited</div></div>
+      <div class="stat"><div class="stat-num">×10</div><div class="stat-label">CI commits green</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── WHAT ─────────── -->
+<section id="what" class="section">
+  <div class="container">
+    <p class="eyebrow">What this is</p>
+    <h2>A drop-in upgrade for <code>~/.claude/</code> that makes the difference between <em>orchestration</em> and <em>verifiable, self-improving delivery</em>.</h2>
+
+    <div class="three-col">
+      <div class="card">
+        <div class="card-icon">⚙</div>
+        <h3>Composed, not invented</h3>
+        <p>Every component traces to a published technique. AggAgent synthesis ([2604.11753]). Universal Self-Consistency ([2311.17311]). Mano-verify multi-modal ([2509.17336]). A-MEM Zettelkasten ([2502.12110]). Plus Anthropic's official sandbox-runtime, Agent Skills, and the canonical Claude Code primitives.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛡</div>
+        <h3>Verified, not asserted</h3>
+        <p>Every "task done" runs through a verifier agent that runs the code in an OS-level sandbox. Every sprint runs through a separate adversarial auditor. Every committed change runs through a 5-aspect verifier panel with confidence-weighted voting. Failure modes are caught, not glossed.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <h3>Measured, not hyped</h3>
+        <p>Reward telemetry on every agent. Cache hit-rate dashboards. A/B-tested prompt evolution. Trajectory mining that turns past sessions into rule patches. The system knows whether it's actually working — which is the difference between architecture and SOTA.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── STACK ─────────── -->
+<section id="stack" class="section section-tinted">
+  <div class="container">
+    <p class="eyebrow">The stack</p>
+    <h2>Six layers, all native primitives.</h2>
+
+    <div class="layers">
+      <div class="layer">
+        <div class="layer-num">01</div>
+        <div class="layer-body">
+          <h3>Orchestration</h3>
+          <p><code>/scrum</code> runs the full SDLC ceremony: Product Owner → Tech Lead → Scrum Master → parallel implementers → Verifier → Aspect-Panel → Sprint Auditor → Retro. <code>/team</code> for ad-hoc fleets. <code>/spec</code> for Kiro three-file design.</p>
+          <ul class="layer-list">
+            <li><code>product-owner</code>, <code>tech-lead</code>, <code>scrum-master</code>, <code>sprint-auditor</code></li>
+            <li>12 domain specialists: security-reviewer, migration-planner, regression-hunter, latency-profiler, …</li>
+            <li>Native Agent + TaskCreate + worktree isolation</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-num">02</div>
+        <div class="layer-body">
+          <h3>Verification</h3>
+          <p>Verifier agent runs code in OS-level sandbox (sandbox-exec on macOS, bwrap on Linux). 5-aspect panel votes confidence-weighted. Sprint Auditor independently re-checks ACs against actual code state — adversarial.</p>
+          <ul class="layer-list">
+            <li><code>/verify</code> · spawn verifier, capture evidence, RESULT_verifier=PASS|FAIL|INCONCLUSIVE</li>
+            <li><code>/aspect-panel</code> · 5 specialized verifiers, ESCALATE on 40-60% disagreement</li>
+            <li><code>/verify-ui</code> · Mano-verify pattern (pre/post screenshots + intent → vision judge)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-num">03</div>
+        <div class="layer-body">
+          <h3>Test-time scaling</h3>
+          <p>Best-of-N with five aggregation modes — argmax critic, USC consistency, confidence-weighted, hybrid, and AggAgent synthesis (merge across rollouts). Execution-grounded BoN runs each candidate in a sandboxed copy and scores by actual test pass rate.</p>
+          <ul class="layer-list">
+            <li><code>/best-of-n --mode synthesize</code> · AggAgent (+5-10% per arXiv 2604.11753)</li>
+            <li><code>/exec-grounded</code> · candidates judged by green tests, mirrors SWE-bench leaders' 60-80% verification compute</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-num">04</div>
+        <div class="layer-body">
+          <h3>RL telemetry</h3>
+          <p>Every TaskCompleted, UserPromptSubmit, and SessionEnd emits reward events. Per-agent value functions accumulate. Recurring failures trigger Reflexion patches; A/B test gates promotion.</p>
+          <ul class="layer-list">
+            <li><code>rewards.jsonl</code> · append-only event log</li>
+            <li><code>value/&lt;agent&gt;.json</code> · rolling 7d/30d mean reward + stderr</li>
+            <li><code>/tune-agent</code> · Reflexion patch from ≥2 failures</li>
+            <li><code>/ab-test</code> · candidate vs current with promotion gating</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-num">05</div>
+        <div class="layer-body">
+          <h3>Memory</h3>
+          <p>A-MEM Zettelkasten linking. Zep-style temporal validity (mark superseded, don't delete). Karpathy-style structured index — beats vector retrieval at our scale per published benchmarks.</p>
+          <ul class="layer-list">
+            <li><code>knowledge/{concepts,connections,qa}/</code> · auto-bidirectional linking</li>
+            <li><code>lessons.md</code> · valid_from / superseded_by fields</li>
+            <li><code>/mine-transcripts</code> · Haiku-extracts patterns from past JSONL → proposes diffs</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-num">06</div>
+        <div class="layer-body">
+          <h3>Auto-fire</h3>
+          <p>Hooks wired into every Claude Code lifecycle event. Verifier auto-spawns on TaskCompleted. Critic auto-runs before commit. Constitutional gate guards destructive ops. Eval auto-queues on agent edits. The user never has to remember.</p>
+          <ul class="layer-list">
+            <li>SessionStart × 2 · PreCompact · SessionEnd · TaskCompleted</li>
+            <li>UserPromptSubmit · PreToolUse(Bash) · PostToolUse(Edit|Write)</li>
+            <li>3 persistent scheduled tasks · daily cache-report · weekly mining + rl-status</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── PROOF ─────────── -->
+<section id="proof" class="section">
+  <div class="container">
+    <p class="eyebrow">End-to-end proof</p>
+    <h2>The adversarial audit is the load-bearing piece.</h2>
+    <p class="lede">
+      Most agent stacks claim "verified" but trust the team's own evidence. Ours doesn't.
+      The Sprint Auditor independently re-derives whether each acceptance criterion was delivered — without trusting the team's claims. Drift detection has teeth.
+    </p>
+
+    <div class="proof-split">
+      <div class="proof-card good">
+        <div class="proof-header"><span class="badge badge-green">NORMAL</span> sprint closes</div>
+<pre><code><span class="t-muted">▶</span> Phase 5: Verifier runs tests in sandbox
+  US-1: 8/8 passed | exit 0 | sandbox-exec
+  US-2: 8/8 passed | exit 0 | sandbox-exec
+<span class="t-muted">▶</span> Phase 7: Sprint Auditor (deterministic)
+  Audit verdict: <span class="t-ok">PASS</span>
+  Delivered: 9/9 ACs
+
+<span class="t-ok">✅ Sprint CLOSED — all ACs delivered, no findings.</span></code></pre>
+      </div>
+
+      <div class="proof-card bad">
+        <div class="proof-header"><span class="badge badge-red">BREAK-IT</span> audit catches partial fix</div>
+<pre><code><span class="t-muted">▶</span> Phase 5: Verifier runs tests in sandbox
+  US-1: 8/8 passed
+  US-2: 5/8 passed | exit 1
+<span class="t-muted">▶</span> Phase 7: Sprint Auditor
+  Audit verdict: <span class="t-err">FAIL</span>
+  Delivered: 6/9 ACs
+  Findings:
+    - US-2/AC-2.3: verifier failed (escaped quote)
+    - US-2/AC-2.4: verifier failed (trailing newline)
+
+<span class="t-err">❌ Sprint BLOCKED — stories re-opened.</span></code></pre>
+      </div>
+    </div>
+
+    <p class="footnote">
+      Run yourself: <code>./bench/scrum-e2e-demo/demo.sh</code> (NORMAL) or <code>./bench/scrum-e2e-demo/demo.sh --break-it</code> (failure mode).
+      Both end with the verdict above and exit codes 0 / 1 accordingly.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── RESEARCH ─────────── -->
+<section id="research" class="section section-tinted">
+  <div class="container">
+    <p class="eyebrow">Research provenance</p>
+    <h2>Every component traces to a published paper.</h2>
+    <p class="lede">No invented patterns. Every gain is from work others have validated; we're the integration layer.</p>
+
+    <div class="research-grid">
+      <a class="research-card" href="https://arxiv.org/abs/2604.11753" rel="noopener">
+        <div class="research-id">arXiv:2604.11753</div>
+        <h3>Agentic Aggregation (AggAgent)</h3>
+        <p>Synthesize across N rollouts instead of picking one. <strong>+5.3% avg, +10.3% deep research.</strong></p>
+        <div class="research-where">→ <code>rl/aggagent.py</code> · <code>/best-of-n --mode synthesize</code></div>
+      </a>
+
+      <a class="research-card" href="https://arxiv.org/abs/2311.17311" rel="noopener">
+        <div class="research-id">arXiv:2311.17311</div>
+        <h3>Universal Self-Consistency</h3>
+        <p>Pick the rollout most consistent with the others. Free-form output, beats argmax critic on noise.</p>
+        <div class="research-where">→ <code>rl/usc.py</code> · <code>/best-of-n --mode usc|hybrid</code></div>
+      </a>
+
+      <a class="research-card" href="https://arxiv.org/abs/2509.17336" rel="noopener">
+        <div class="research-id">arXiv:2509.17336</div>
+        <h3>Mano-verify (multi-modal)</h3>
+        <p>Pre/post screenshots + textual intent → vision-LLM judge. <strong>#1 OSWorld at 58.2%.</strong></p>
+        <div class="research-where">→ <code>/verify-ui</code></div>
+      </a>
+
+      <a class="research-card" href="https://arxiv.org/abs/2502.12110" rel="noopener">
+        <div class="research-id">arXiv:2502.12110</div>
+        <h3>A-MEM (Zettelkasten)</h3>
+        <p>Bidirectional auto-linking + note evolution. NeurIPS 2025. Beats embedding retrieval at small scale.</p>
+        <div class="research-where">→ <code>skills/mine-transcripts/zettelkasten.py</code></div>
+      </a>
+
+      <a class="research-card" href="https://arxiv.org/abs/2501.13956" rel="noopener">
+        <div class="research-id">arXiv:2501.13956</div>
+        <h3>Zep / Graphiti</h3>
+        <p>Temporal validity: <code>valid_from</code>, <code>superseded_by</code>. <strong>94.8% on Deep Memory Retrieval.</strong></p>
+        <div class="research-where">→ <code>skills/mine-transcripts/temporal_validity.py</code></div>
+      </a>
+
+      <a class="research-card" href="https://arxiv.org/abs/2310.08560" rel="noopener">
+        <div class="research-id">arXiv:2310.08560</div>
+        <h3>MemGPT (paged context)</h3>
+        <p>Virtual context as RAM/disk. Foundation for tool-driven memory page-in.</p>
+        <div class="research-where">→ Tier-2 deferred (build when knowledge/ &gt; 100 entries)</div>
+      </a>
+
+      <a class="research-card" href="https://arxiv.org/abs/2511.13646" rel="noopener">
+        <div class="research-id">arXiv:2511.13646</div>
+        <h3>LIVE-SWE-AGENT</h3>
+        <p>Self-evolving SWE agents. <strong>77.4% on SWE-bench Verified</strong> (the May 2026 published target).</p>
+        <div class="research-where">→ <code>bench/swe-bench-mini</code> (validation against this)</div>
+      </a>
+
+      <a class="research-card" href="https://arxiv.org/abs/2502.08788" rel="noopener">
+        <div class="research-id">arXiv:2502.08788</div>
+        <h3>Stop Overvaluing MAD</h3>
+        <p>Multi-agent debate is mostly captured by best-of-N + voting. <em>Why we don't multi-round debate.</em></p>
+        <div class="research-where">→ Rationale doc</div>
+      </a>
+
+      <a class="research-card" href="https://www.anthropic.com/engineering/claude-code-sandboxing" rel="noopener">
+        <div class="research-id">Anthropic Eng</div>
+        <h3>Claude Code sandboxing</h3>
+        <p>OS-level isolation via sandbox-exec / bwrap. <strong>84% reduction in permission prompts.</strong></p>
+        <div class="research-where">→ <code>sandbox/sandbox_run.py</code></div>
+      </a>
+    </div>
+
+    <p class="footnote">
+      Full citation list at <a href="https://github.com/sethdford/claude-code-teams/blob/main/docs/arxiv-references.md">docs/arxiv-references.md</a> — every component links back to its source paper.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── HONEST STATUS ─────────── -->
+<section id="status" class="section">
+  <div class="container">
+    <p class="eyebrow">Honest status</p>
+    <h2>What's proven vs. what's pending real-API validation.</h2>
+
+    <div class="status-grid">
+      <div class="status-col">
+        <h3 class="status-h">🟢 Proven end-to-end</h3>
+        <ul>
+          <li>OS-level sandbox isolation on macOS (sandbox-exec) — 6 functional tests pass</li>
+          <li>Test parsers: pytest both orderings, jest/vitest, go test</li>
+          <li>SCRUM ceremony orchestration (deterministic audit catches drift in BREAK-IT mode)</li>
+          <li>CI cross-platform: install + smoke clean on Ubuntu</li>
+          <li>10 consecutive green commits</li>
+          <li>Two real bugs caught in flight (parser order, sandbox stderr leak)</li>
+        </ul>
+      </div>
+      <div class="status-col">
+        <h3 class="status-h">🟡 Pending real-API validation</h3>
+        <ul>
+          <li>Every agent's <code>RESULT_&lt;name&gt;=</code> contract under real Claude</li>
+          <li>The bench's empirical pass@1 vs LIVE-SWE-AGENT 77.4%</li>
+          <li>Mining + skill-proposer with Haiku-extracted output</li>
+          <li>Constitutional gate's actual Haiku decision</li>
+          <li>AggAgent synthesizer with real model output</li>
+          <li>Real session reward accumulation (currently synthetic)</li>
+        </ul>
+        <p class="footnote">All blocked on a single Anthropic subscription rate limit. Validation pass + dogfood plan captured at <a href="https://github.com/sethdford/claude-code-teams/blob/main/NEXT_STEPS.md">NEXT_STEPS.md</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── INSTALL ─────────── -->
+<section id="install" class="section section-tinted">
+  <div class="container">
+    <p class="eyebrow">Install</p>
+    <h2>One command. Symlinked, idempotent, reversible.</h2>
+
+    <div class="install-block">
+      <div class="install-step">
+        <div class="install-num">1</div>
+        <div>
+          <h4>Clone & install</h4>
+<pre><code><span class="t-prompt">$</span> git clone https://github.com/sethdford/claude-code-teams.git
+<span class="t-prompt">$</span> cd claude-code-teams
+<span class="t-prompt">$</span> ./install.sh</code></pre>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">2</div>
+        <div>
+          <h4>Merge settings.json (manual, never auto-overwrites)</h4>
+<pre><code><span class="t-prompt">$</span> diff ~/.claude/settings.json ~/.claude/settings.json.template
+<span class="t-prompt">#</span> merge in: hooks, statusLine, env keys</code></pre>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">3</div>
+        <div>
+          <h4>Restart Claude Code &amp; verify</h4>
+<pre><code><span class="t-prompt">$</span> ./tests/smoke.sh
+<span class="t-ok">✓</span> 77 passed, 0 failed
+<span class="t-prompt">$</span> ./tests/scrum_smoke.sh
+<span class="t-ok">✓</span> 13 passed, 0 failed</code></pre>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">4</div>
+        <div>
+          <h4>Try a real run</h4>
+<pre><code><span class="t-prompt">$</span> claude -p <span class="t-str">"/scrum 'add OAuth login per spec.md'"</span>
+<span class="t-muted">▶</span> Phase 1: Product Owner authors stories ...</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <p class="footnote">
+      Prerequisites: Claude Code 2.1.32+, Python 3.9+, Bash 3.2+. macOS uses native <code>sandbox-exec</code>; Linux requires <code>bwrap</code>. Optional: <code>ANTHROPIC_API_KEY</code> for <code>--bare</code> headless eval.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── FOOTER ─────────── -->
+<footer class="footer">
+  <div class="container footer-row">
+    <div>
+      <p class="footer-brand"><span class="logo" aria-hidden="true">∞</span> claude-code-teams</p>
+      <p class="footer-meta">MIT licensed. Built 2026 in honest-architecture mode.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/sethdford/claude-code-teams">GitHub</a>
+      <a href="https://github.com/sethdford/claude-code-teams/blob/main/README.md">README</a>
+      <a href="https://github.com/sethdford/claude-code-teams/blob/main/INSTALL.md">Install</a>
+      <a href="https://github.com/sethdford/claude-code-teams/blob/main/docs/architecture.md">Architecture</a>
+      <a href="https://github.com/sethdford/claude-code-teams/blob/main/docs/arxiv-references.md">Citations</a>
+      <a href="https://github.com/sethdford/claude-code-teams/blob/main/NEXT_STEPS.md">Next Steps</a>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>

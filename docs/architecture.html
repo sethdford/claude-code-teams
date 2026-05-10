@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Architecture — claude-code-teams</title>
+<meta name="description" content="Design rationale, data flow, and component map for claude-code-teams: skills, agents, hooks, RL, memory, eval harness." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23E97339'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='ui-monospace,SFMono-Regular,monospace' font-size='34' font-weight='700' fill='%23FAF7F2'%3E∞%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="container topbar-row">
+    <a class="brand" href="index.html">
+      <span class="logo" aria-hidden="true">∞</span>
+      <span class="brand-name">claude-code-teams</span>
+    </a>
+    <nav class="nav" aria-label="primary">
+      <a href="index.html#what">What</a>
+      <a href="index.html#stack">Stack</a>
+      <a href="index.html#proof">Proof</a>
+      <a href="index.html#research">Research</a>
+      <a href="index.html#install">Install</a>
+      <a href="architecture.html" aria-current="page" class="active">Architecture</a>
+      <a href="https://github.com/sethdford/claude-code-teams" class="github" rel="noopener">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.92.58.1.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.18 3.18-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.41.35.78 1.03.78 2.07 0 1.5-.01 2.71-.01 3.08 0 .31.21.67.8.56 4.57-1.53 7.86-5.84 7.86-10.92C23.5 5.65 18.35.5 12 .5z"/></svg>
+        GitHub
+      </a>
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 17a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1zm10-9a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zM5 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zm14.07-7.07a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 1 1-1.41-1.41l1.41-1.41a1 1 0 0 1 1.41 0zM7.76 16.24a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 1 1-1.41-1.41l1.41-1.41a1 1 0 0 1 1.41 0zm11.31 1.41a1 1 0 0 1-1.41 1.41l-1.41-1.41a1 1 0 1 1 1.41-1.41l1.41 1.41zM7.76 7.76a1 1 0 0 1-1.41 1.41L4.93 7.76a1 1 0 0 1 1.41-1.41l1.41 1.41z"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero hero-compact">
+  <div class="container">
+    <p class="kicker">Architecture</p>
+    <h1>How the pieces fit.</h1>
+    <p class="lede">
+      Design rationale, data flow, and component map. Every layer is justified by a published result; every claim links to the paper.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── DIAGRAM ─────────── -->
+<section class="section">
+  <div class="container">
+    <h2>Lifecycle diagram</h2>
+    <p class="section-lede">Hooks fire on Claude Code's native lifecycle events. Each event has one job.</p>
+    <pre class="codeblock"><code>┌──────────────────────────────────────────────────────────────────┐
+│  USER prompt → Claude Code session                               │
+└────────────────────────┬─────────────────────────────────────────┘
+                         │
+   ┌─────────────────────┼─────────────────────┐
+   ▼                     ▼                     ▼
+[SessionStart]    [UserPromptSubmit]    [PreToolUse: Bash]
+knowledge inject  correction signal +   auto-critic on commit
+                  completion-claim
+                  detector
+                         │
+                         ▼
+                  agent processes work
+                         │
+   ┌─────────────────────┼─────────────────────┐
+   ▼                     ▼                     ▼
+[PostToolUse]    [TaskCompleted]      [PreCompact]
+auto-eval on     auto-verify +        compaction log
+agent edit       reward emit
+                         │
+                         ▼
+                   [SessionEnd]
+              cache stats + value update
+                         │
+                         ▼
+                   ~/.claude/rl/
+              rewards.jsonl, value/, policy/
+                         │
+       ┌─────────────────┼─────────────────┐
+       ▼                 ▼                 ▼
+   /tune-agent      /ab-test          /best-of-n
+   Reflexion        promotion         test-time
+   patches          gating            scaling</code></pre>
+  </div>
+</section>
+
+<!-- ─────────── COMPONENTS ─────────── -->
+<section class="section section-alt">
+  <div class="container">
+    <h2>Components</h2>
+
+    <h3 class="comp-header">Skills <span class="comp-path">claude/skills/</span></h3>
+    <p>13 user-and-assistant-invocable workflows. Each is a directory with <code>SKILL.md</code> (frontmatter + body).</p>
+    <div class="table-wrap">
+      <table class="comp-table">
+        <thead><tr><th>Skill</th><th>Layer</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>/eval</code></td><td>Measurement</td><td>Test skill/agent triggers + quality scoring</td></tr>
+          <tr><td><code>/eval-author</code></td><td>Measurement</td><td>Generate scenario stubs</td></tr>
+          <tr><td><code>/verify</code></td><td>Gating</td><td>Spawn verifier agent</td></tr>
+          <tr><td><code>/cache-report</code></td><td>Telemetry</td><td>Cache hit-rate trends + anomalies</td></tr>
+          <tr><td><code>/team</code></td><td>Orchestration</td><td>Native multi-agent fleet</td></tr>
+          <tr><td><code>/spec</code></td><td>Process</td><td>Three-file spec workflow (Kiro-style)</td></tr>
+          <tr><td><code>/mine-transcripts</code></td><td>Learning</td><td>Trajectory miner — proposes diffs</td></tr>
+          <tr><td><code>/apply-mining-patches</code></td><td>Learning</td><td>Apply approved miner output</td></tr>
+          <tr><td><code>/tune-agent</code></td><td>Reflexion</td><td>Patch agent prompt from failure evidence</td></tr>
+          <tr><td><code>/best-of-n</code></td><td>Test-time RL</td><td>N rollouts + critic + USC + confidence + AggAgent</td></tr>
+          <tr><td><code>/aspect-panel</code></td><td>Verification</td><td>5-aspect verifier panel</td></tr>
+          <tr><td><code>/ab-test</code></td><td>Policy</td><td>A/B variant comparison + promotion</td></tr>
+          <tr><td><code>/rl-status</code></td><td>Telemetry</td><td>Per-agent reward + value snapshot</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="comp-header">Agents <span class="comp-path">claude/agents/</span></h3>
+    <p>20 specialized subagents. Core 4 emit machine-parseable <code>RESULT_&lt;name&gt;=</code> on the last line so hooks can detect them.</p>
+    <div class="agent-grid">
+      <div class="agent-card">
+        <div class="agent-tag">Core</div>
+        <ul class="agent-list">
+          <li><code>verifier</code> — runs code, captures evidence; emits <code>PASS|FAIL|INCONCLUSIVE</code></li>
+          <li><code>critic</code> — adversarial reviewer, never edits; emits <code>CLEAN|HAS_FINDINGS_n_n</code></li>
+          <li><code>agent-tuner</code> — Reflexion patcher; emits <code>PATCHED|...</code></li>
+          <li><code>spec-verifier</code> — checks impl satisfies spec; emits <code>PASS|FAIL|...</code></li>
+        </ul>
+      </div>
+      <div class="agent-card">
+        <div class="agent-tag">Specialists</div>
+        <ul class="agent-list">
+          <li><code>migration-planner</code></li>
+          <li><code>regression-hunter</code></li>
+          <li><code>flake-detector</code></li>
+          <li><code>dep-auditor</code></li>
+          <li><code>cost-analyzer</code></li>
+          <li><code>docs-drift-checker</code></li>
+          <li><code>api-contract-watcher</code></li>
+          <li><code>latency-profiler</code></li>
+          <li><code>dead-code-finder</code></li>
+          <li><code>error-budget-tracker</code></li>
+          <li><code>security-reviewer</code></li>
+          <li><code>accessibility-reviewer</code></li>
+        </ul>
+      </div>
+      <div class="agent-card">
+        <div class="agent-tag">SCRUM</div>
+        <ul class="agent-list">
+          <li><code>product-owner</code> — story authoring</li>
+          <li><code>tech-lead</code> — design + risk tagging</li>
+          <li><code>scrum-master</code> — wave planning</li>
+          <li><code>sprint-auditor</code> — adversarial audit</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="comp-header">Hooks <span class="comp-path">claude/hooks/</span></h3>
+    <p>10 scripts wired into 7 hook events in <code>settings.json</code>:</p>
+    <div class="table-wrap">
+      <table class="comp-table">
+        <thead><tr><th>Event</th><th>Script</th><th>What</th></tr></thead>
+        <tbody>
+          <tr><td>SessionStart (startup|resume)</td><td><code>session-start-knowledge.sh</code></td><td>Inject relevant knowledge entries</td></tr>
+          <tr><td>SessionStart (compact)</td><td>inline</td><td>Re-inject critical context post-compaction</td></tr>
+          <tr><td>PreCompact</td><td>inline</td><td>Log compaction event</td></tr>
+          <tr><td>SessionEnd</td><td><code>log-cache-stats.sh</code></td><td>Append cache-stats record + anomaly flag if &lt;70%</td></tr>
+          <tr><td>SessionEnd</td><td><code>emit_session_rewards.py</code></td><td>Aggregate per-agent, recompute <code>value/&lt;agent&gt;.json</code></td></tr>
+          <tr><td>TaskCompleted</td><td><code>auto-verify-on-complete.sh</code></td><td>Headlessly spawn verifier if no evidence; bypass on <code>trivial:</code></td></tr>
+          <tr><td>TaskCompleted</td><td><code>emit_task_reward.py</code></td><td>Emit reward event from session JSONL</td></tr>
+          <tr><td>UserPromptSubmit</td><td><code>emit_correction_signal.py</code></td><td>Detect "no/wrong/instead" → emit <code>-2.0</code></td></tr>
+          <tr><td>UserPromptSubmit</td><td><code>completion-claim-detector.sh</code></td><td>Detect "I think it's done" → inject <code>/verify</code> nudge</td></tr>
+          <tr><td>PreToolUse (Bash)</td><td><code>auto-critic-on-commit.sh</code></td><td>On <code>git commit</code>: spawn critic on staged diff; CRITICAL → exit 2</td></tr>
+          <tr><td>PostToolUse (Edit|Write)</td><td><code>auto-eval-on-agent-edit.sh</code></td><td>On agent/skill edit: queue debounced <code>/eval</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="comp-header">RL telemetry <span class="comp-path">claude/rl/</span></h3>
+    <pre class="codeblock"><code>rl/
+├── rewards.jsonl                # append-only event log
+├── preferences.jsonl            # (chosen, rejected) pairs (DPO format)
+├── value/&lt;agent&gt;.json           # rolling reward statistics (V-function approx)
+├── policy/&lt;agent&gt;/              # current/candidates/history/ab-runs/
+│
+├── emit_task_reward.py          # TaskCompleted hook
+├── emit_correction_signal.py    # UserPromptSubmit hook
+├── emit_session_rewards.py      # SessionEnd hook
+│
+├── best_of_n.py                 # 5 modes: critic, usc, confidence, hybrid, synthesize
+├── aggagent.py                  # arXiv 2604.11753 synthesizer
+├── usc.py                       # Universal Self-Consistency
+├── aspect_panel.py              # 5-aspect verifier panel
+└── ab_test.py                   # A/B test current vs candidate</code></pre>
+
+    <h3 class="comp-header">Memory <span class="comp-path">claude/knowledge/</span> + <span class="comp-path">skills/mine-transcripts/</span></h3>
+    <pre class="codeblock"><code>knowledge/
+├── INDEX.md                     # master index (Karpathy-style)
+├── concepts/&lt;slug&gt;.md           # durable patterns
+├── connections/&lt;slug&gt;.md        # how things relate
+└── qa/&lt;slug&gt;.md                 # specific Q&amp;A
+
+skills/mine-transcripts/
+├── mine.py                      # filter session JSONL
+├── compile.py                   # extract → write structured entries
+├── zettelkasten.py              # A-MEM bidirectional linking
+└── temporal_validity.py         # Zep-style valid_from/superseded_by</code></pre>
+  </div>
+</section>
+
+<!-- ─────────── DATA FLOW ─────────── -->
+<section class="section">
+  <div class="container">
+    <h2>Data flow: a typical task</h2>
+    <ol class="flow-list">
+      <li>
+        <strong>User sends prompt to Claude Code</strong>
+        <ul>
+          <li><code>UserPromptSubmit</code> fires: correction-signal + completion-claim detectors run</li>
+          <li>If correction matched → <code>-2.0</code> reward event in <code>rewards.jsonl</code></li>
+          <li>If completion claim → nudge to <code>/verify</code> injected as <code>additionalContext</code></li>
+        </ul>
+      </li>
+      <li>
+        <strong>Claude works (Read/Edit/Write/Bash/Agent)</strong>
+        <ul>
+          <li><code>PreToolUse(Bash)</code> on <code>git commit</code> → critic on staged diff; CRITICAL exits 2 (block); HIGH warns</li>
+          <li><code>PostToolUse(Edit|Write)</code> on agent <code>.md</code> → debounced <code>/eval</code> queued</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Claude marks task complete</strong>
+        <ul>
+          <li><code>TaskCompleted</code>: if <code>RESULT_verifier=PASS</code> exists in session → pass; FAIL/INCONCLUSIVE → surface, exit 2; no evidence → spawn verifier headlessly</li>
+          <li><code>emit_task_reward.py</code>: greps session JSONL for <code>RESULT_*</code>, writes events to <code>rewards.jsonl</code></li>
+        </ul>
+      </li>
+      <li>
+        <strong>Session ends</strong>
+        <ul>
+          <li><code>log-cache-stats.sh</code>: append cache-stats record (anomaly flag if &lt;70%)</li>
+          <li><code>emit_session_rewards.py</code>: aggregate per-agent, recompute <code>value/&lt;agent&gt;.json</code></li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ─────────── DESIGN CHOICES ─────────── -->
+<section class="section section-alt">
+  <div class="container">
+    <h2>Why these design choices</h2>
+
+    <div class="why-grid">
+      <article class="why-card">
+        <h3>Why prompt-only RL (no fine-tuning)?</h3>
+        <p>We don't have weight access to Claude. The available levers are:</p>
+        <ul>
+          <li><strong>Reflexion</strong> = prompt update via <code>/tune-agent</code></li>
+          <li><strong>Best-of-N + critic</strong> = test-time scaling</li>
+          <li><strong>A/B test + promotion</strong> = policy gating</li>
+          <li><strong>Reward modeling</strong> = scoring future runs by past patterns</li>
+        </ul>
+        <p>Each is API-compatible. Together they're the production-realistic RL stack for closed-source LLMs.</p>
+      </article>
+
+      <article class="why-card">
+        <h3>Why markdown + grep instead of vector DB?</h3>
+        <p>At hundreds-to-thousands of memory entries:</p>
+        <ul>
+          <li>BM25/grep is sub-ms latency, zero GPU cost, exact-match for technical content</li>
+          <li>Curation quality dominates retrieval algorithm at small scale (HippoRAG/Mem0/Zep)</li>
+          <li>Real wins are write-time policy: A-MEM linking, Zep validity, Mem0 ADD/UPDATE — these improve the index</li>
+        </ul>
+        <p>See <a href="https://arxiv.org/abs/2501.01880" rel="noopener">arXiv 2501.01880 — Long Context vs RAG</a>.</p>
+      </article>
+
+      <article class="why-card">
+        <h3>Why aspect-panel instead of multi-round debate?</h3>
+        <p>Per <a href="https://arxiv.org/abs/2502.08788" rel="noopener">arXiv 2502.08788</a> ("Stop Overvaluing MAD") and <a href="https://arxiv.org/abs/2509.05396" rel="noopener">2509.05396</a>, multi-round debate at rounds 4+ measurably <em>hurts</em>. Real gains come from:</p>
+        <ul>
+          <li>Heterogeneous personas (<a href="https://arxiv.org/abs/2308.07201" rel="noopener">ChatEval</a>)</li>
+          <li>Confidence-weighted aggregation (<a href="https://arxiv.org/abs/2309.13007" rel="noopener">ReConcile</a>, <a href="https://arxiv.org/abs/2510.01499" rel="noopener">Beyond Majority Voting</a>)</li>
+        </ul>
+        <p><code>/aspect-panel</code> does both. We do <strong>not</strong> do multi-round debate.</p>
+      </article>
+
+      <article class="why-card">
+        <h3>Why no hierarchical agent structure?</h3>
+        <p>Per <a href="https://arxiv.org/abs/2509.10769" rel="noopener">arXiv 2509.10769</a>, hierarchical beats flat only at &gt;10 agents. We have ~20 but most invocations involve 3–5. Flat with a lead is correct.</p>
+      </article>
+
+      <article class="why-card">
+        <h3>Why AggAgent (synthesize) over argmax?</h3>
+        <p>Per <a href="https://arxiv.org/abs/2604.11753" rel="noopener">arXiv 2604.11753</a>, when rollouts contain <em>complementary</em> insights, synthesizing a NEW answer that merges the best of all N beats picking the best single one. Used for design docs, multi-step reasoning, deep research.</p>
+        <p>For tasks with one correct answer (specific bug fix, specific test) keep <code>--mode critic</code>.</p>
+      </article>
+
+      <article class="why-card">
+        <h3>Why hooks-as-guarantees over CLAUDE.md rules?</h3>
+        <p>CLAUDE.md is suggestions; hooks are enforcement. <code>auto-verify-on-complete</code> can't be forgotten. <code>auto-critic-on-commit</code> can't be skipped. Determinism belongs in the harness, not the prompt.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── LIMITATIONS ─────────── -->
+<section class="section">
+  <div class="container">
+    <h2>Limitations <span class="muted">(honest)</span></h2>
+    <ol class="limits-list">
+      <li><strong>No fine-tuning</strong> — Reflexion is a prompt-level operation. Real SOTA in academic terms requires weight access.</li>
+      <li><strong>Reward sparsity</strong> — most tasks don't generate strong signal. Baseline <code>+0.1</code> keeps the value function moving.</li>
+      <li><strong>Auto-verify cost</strong> — every <code>TaskCompleted</code> with no prior evidence triggers ~$0.10 headless run. Mitigated by <code>trivial:</code> bypass.</li>
+      <li><strong>No cross-machine sync</strong> — <code>~/.claude/rl/</code> is local. Future: sync via git or cloud.</li>
+      <li><strong>Reward hacking</strong> — agents could in principle learn to skip work to avoid critic findings. Mitigation: verifier reward dominates and requires real <code>PASS</code> evidence in JSONL — can't fake.</li>
+      <li><strong>Subscription rate limits</strong> — auto-firing hooks consume the same quota as manual usage. Set <code>ANTHROPIC_API_KEY</code> for <code>--bare</code> mode if you hit ceiling.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ─────────── ROADMAP ─────────── -->
+<section class="section section-alt">
+  <div class="container">
+    <h2>Roadmap <span class="muted">(Tier 2/3 deferred)</span></h2>
+    <p>When the foundation has 30+ days of data, promote these from <a href="https://github.com/sethdford/claude-code-teams/blob/main/docs/arxiv-references.md" rel="noopener"><code>docs/arxiv-references.md</code></a>:</p>
+    <div class="roadmap-grid">
+      <div class="roadmap-card"><h4>Math-Shepherd MC step values</h4><p>Process rewards → <code>rl/process_rewards.py</code></p></div>
+      <div class="roadmap-card"><h4>AB-MCTS adaptive branching</h4><p>Extension to <code>best_of_n.py</code></p></div>
+      <div class="roadmap-card"><h4>Difficulty-routed cascade</h4><p>Haiku-first, Opus-on-hard</p></div>
+      <div class="roadmap-card"><h4>MemGPT core memory</h4><p>Tool-driven page-in when knowledge/ exceeds 100 entries</p></div>
+      <div class="roadmap-card"><h4>TextGrad for compound pipelines</h4><p>When 3+ agent chains underperform</p></div>
+      <div class="roadmap-card"><h4>Training-Free GRPO frame</h4><p>For <code>/tune-agent</code> when ≥50 reward events accumulated</p></div>
+      <div class="roadmap-card"><h4>LATS for release-blocking calls</h4><p>Opt-in for security/migration only</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── CTA ─────────── -->
+<section class="section">
+  <div class="container cta-final">
+    <h2>Ready to install?</h2>
+    <p>Single-command install symlinks <code>claude/</code> into <code>~/.claude/</code>. Idempotent. Fully reversible.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="index.html#install">Install instructions →</a>
+      <a class="btn ghost" href="https://github.com/sethdford/claude-code-teams" rel="noopener">Source on GitHub</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer-row">
+    <div class="footer-brand">
+      <span class="logo" aria-hidden="true">∞</span>
+      <span class="brand-name">claude-code-teams</span>
+      <span class="footer-license">MIT licensed</span>
+    </div>
+    <nav class="footer-nav" aria-label="footer">
+      <a href="index.html">Home</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="https://github.com/sethdford/claude-code-teams" rel="noopener">GitHub</a>
+      <a href="https://github.com/sethdford/claude-code-teams/blob/main/docs/arxiv-references.md" rel="noopener">arXiv references</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
