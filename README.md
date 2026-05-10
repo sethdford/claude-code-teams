@@ -9,8 +9,9 @@
 
 A drop-in upgrade for `~/.claude/` that gives you:
 
-- **15 custom skills** — `/eval`, `/verify`, `/cache-report`, `/team`, `/spec`, `/mine-transcripts`, `/tune-agent`, `/best-of-n`, `/aspect-panel`, `/ab-test`, `/rl-status`, `/eval-author`, `/apply-mining-patches`, `/exec-grounded`, `/verify-ui`
-- **16 specialized agents** — verifier (sandbox-aware), critic, agent-tuner, spec-verifier, plus 12 domain specialists
+- **16 custom skills** — `/eval`, `/verify`, `/cache-report`, `/team`, `/spec`, `/mine-transcripts`, `/tune-agent`, `/best-of-n`, `/aspect-panel`, `/ab-test`, `/rl-status`, `/eval-author`, `/apply-mining-patches`, `/exec-grounded`, `/verify-ui`, `/scrum`
+- **20 specialized agents** — verifier (sandbox-aware), critic, agent-tuner, spec-verifier, **product-owner, scrum-master, tech-lead, sprint-auditor**, plus 12 domain specialists
+- **Full SCRUM team with adversarial audit** — `/scrum "<goal>"` runs all ceremonies (planning → wave execution → review → adversarial audit → retro). Sprint Auditor independently re-derives whether each AC was delivered, catches scope creep + drift + DoD violations. Demo proves NORMAL=PASS, BREAK-IT=FAIL with specific drift detection.
 - **8 auto-firing hooks** — verifier auto-spawns on TaskCompleted, critic auto-runs before commit, eval auto-queues after agent edits, completion-claim phrases nudge `/verify`, cache stats logged at SessionEnd, knowledge entries injected at SessionStart
 - **Eval harness** — programmatic + LLM-judge scoring with regression detection
 - **RL infrastructure** — `rewards.jsonl`, per-agent `value/<agent>.json`, best-of-N test-time scaling with USC + confidence-weighted modes, Reflexion-based prompt evolution, A/B testing with reward gating

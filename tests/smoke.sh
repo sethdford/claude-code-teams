@@ -124,6 +124,18 @@ if [[ -x "$SCRIPT_DIR/phase_h_smoke.sh" ]]; then
   fi
 fi
 
+# SCRUM smoke (delegate)
+echo "--- SCRUM ---"
+if [[ -x "$SCRIPT_DIR/scrum_smoke.sh" ]]; then
+  if CLAUDE_DIR="$CLAUDE_DIR" bash "$SCRIPT_DIR/scrum_smoke.sh" >/dev/null 2>&1; then
+    PASS=$((PASS+1))
+    T+=("✓ SCRUM smoke (delegated)")
+  else
+    FAIL=$((FAIL+1))
+    T+=("✗ SCRUM smoke (run ./tests/scrum_smoke.sh standalone for detail)")
+  fi
+fi
+
 # Summary
 echo ""
 echo "=========================================="
